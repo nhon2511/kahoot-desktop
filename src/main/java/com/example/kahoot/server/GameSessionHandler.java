@@ -126,6 +126,16 @@ public class GameSessionHandler {
     public void setHost(ClientHandler host) {
         this.host = host;
         System.out.println("✓ Đã thiết lập host cho game session: " + session.getPinCode());
+        // Khi host được set, gửi cho host trạng thái hiện tại (số lượng player hiện tại)
+        try {
+            if (host != null) {
+                int playerCount = players.size();
+                host.sendResponse("PLAYER_JOINED|" + playerCount);
+                System.out.println("✓ Đã gửi initial PLAYER_JOINED đến host: " + playerCount);
+            }
+        } catch (Exception e) {
+            System.err.println("✗ Lỗi khi gửi initial PLAYER_JOINED đến host: " + e.getMessage());
+        }
     }
     
     /**

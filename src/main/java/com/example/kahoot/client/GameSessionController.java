@@ -122,25 +122,40 @@ public class GameSessionController implements Initializable {
                 });
                 
                 // Kết nối đến server nếu chưa kết nối
-                if (socketClient == null) {
-                    socketClient = new SocketClient("192.168.1.102", 8888);
-                }
-                
-                if (!socketClient.isConnected()) {
-                    System.out.println("🔄 Đang kết nối đến server...");
-                    if (!socketClient.connect()) {
-                        Platform.runLater(() -> {
-                            showMessage("Cảnh báo: Không kết nối được với server!\n" +
-                                      "Kiểm tra:\n- Server đang chạy trên 192.168.1.102:8888\n" +
-                                      "- Firewall không chặn kết nối\n- Network có thể truy cập được", true);
-                        });
-                        return;
-                    } else {
-                        // Đăng ký message listener sau khi kết nối
-                        socketClient.setMessageListener(this::handleServerMessage);
-                        System.out.println("✓ Đã kết nối và đăng ký message listener");
-                    }
-                }
+                        if (socketClient == null) {
+                            socketClient = new SocketClient("192.168.1.102", 8888);
+                        }
+
+                        if (!socketClient.isConnected()) {
+                            System.out.println("🔄 Đang kết nối đến server (thử): " + socketClient.getServerHost() + ":" + socketClient.getServerPort());
+
+                            // Thử kết nối tới host mặc định; nếu thất bại, thử localhost và 127.0.0.1
+                            String[] tryHosts = new String[] { socketClient.getServerHost(), "localhost", "127.0.0.1" };
+                            boolean connected = false;
+                            for (String h : tryHosts) {
+                                if (h == null) continue;
+                                SocketClient sc = new SocketClient(h, socketClient.getServerPort());
+                                System.out.println("🔁 Thử kết nối tới: " + h + ":" + sc.getServerPort());
+                                if (sc.connect()) {
+                                    socketClient = sc; // swap to working client
+                                    socketClient.setMessageListener(this::handleServerMessage);
+                                    System.out.println("✓ Đã kết nối thành công đến: " + h + ":" + sc.getServerPort());
+                                    connected = true;
+                                    break;
+                                } else {
+                                    System.err.println("✗ Không thể kết nối tới: " + h);
+                                }
+                            }
+
+                            if (!connected) {
+                                final String attempted = String.join(", ", tryHosts);
+                                Platform.runLater(() -> {
+                                    showMessage("Cảnh báo: Không kết nối được với server! Các host đã thử: " + attempted + ".\n" +
+                                              "Kiểm tra:\n- Server đang chạy và Firewall không chặn\n- Địa chỉ IP/Port đúng", true);
+                                });
+                                return;
+                            }
+                        }
                 
                 // Gửi START_GAME message đến server
                 String message = "START_GAME|" + pinCode;

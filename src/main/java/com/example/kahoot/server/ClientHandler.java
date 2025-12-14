@@ -222,17 +222,21 @@ public class ClientHandler implements Runnable {
             this.sessionId = session.getSessionId();
             
             // Đăng ký client vào server
+            // Register client locally
             server.registerClientToGame(sessionId, pinCode, this);
-            
-            // Đăng ký vào game session
+
+            // If the game has already been started on the server, add player immediately.
             GameSessionHandler gameHandler = server.getGameSession(pinCode);
             if (gameHandler != null) {
                 gameHandler.addPlayer(this, playerName);
                 System.out.println("✓ Player '" + playerName + "' đã tham gia game với PIN: " + pinCode);
                 sendResponse("JOIN_SUCCESS|" + session.getQuizId() + "|" + playerName);
             } else {
-                System.out.println("✗ Game session không tồn tại với PIN: " + pinCode);
-                sendResponse("JOIN_FAILED|Game session not found. Host chưa bắt đầu game.");
+                // Game not started yet — add to pending list so when host starts it they'll be added.
+                server.addPendingPlayer(pinCode, this, playerName);
+                System.out.println("ℹ Player '" + playerName + "' đã được thêm vào danh sách chờ cho PIN: " + pinCode);
+                // Still respond with JOIN_SUCCESS so client can enter waiting screen
+                sendResponse("JOIN_SUCCESS|" + session.getQuizId() + "|" + playerName);
             }
         } catch (SQLException e) {
             System.err.println("✗ Lỗi SQL khi xử lý JOIN_GAME: " + e.getMessage());
@@ -367,19 +371,23 @@ public class ClientHandler implements Runnable {
             sendResponse("ERROR|Invalid start question format");
             return;
         }
-
         String pinCode = parts[1];
+
+        System.out.println("🔄 START_QUESTION received for PIN: " + pinCode);
 
         try {
             GameSessionHandler gameHandler = server.getGameSession(pinCode);
             if (gameHandler != null) {
                 gameHandler.startGame();
                 sendResponse("START_QUESTION_OK");
+                System.out.println("✓ Game started for PIN: " + pinCode);
             } else {
+                System.err.println("✗ START_QUESTION: Game session not found for PIN: " + pinCode);
                 sendResponse("ERROR|Game session not found");
             }
         } catch (Exception e) {
             System.err.println("✗ Lỗi khi xử lý START_QUESTION: " + e.getMessage());
+            e.printStackTrace();
             sendResponse("ERROR|" + e.getMessage());
         }
     }

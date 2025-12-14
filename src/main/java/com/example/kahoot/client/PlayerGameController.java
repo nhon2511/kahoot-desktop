@@ -116,7 +116,17 @@ public class PlayerGameController implements Initializable {
                 handleGameEnded(parts);
                 break;
             case "PLAYER_JOINED":
-                // Có thể hiển thị số lượng player
+                if (parts.length >= 2) {
+                    try {
+                        int count = Integer.parseInt(parts[1]);
+                        Platform.runLater(() -> {
+                            statusLabel.setText("Số người chơi hiện tại: " + count);
+                        });
+                        System.out.println("✓ PLAYER_JOINED nhận: " + count);
+                    } catch (NumberFormatException e) {
+                        System.err.println("✗ Lỗi parse PLAYER_JOINED: " + parts[1]);
+                    }
+                }
                 break;
             default:
                 System.out.println("  ⚠ Command không xử lý: " + command);

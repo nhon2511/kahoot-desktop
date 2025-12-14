@@ -26,6 +26,8 @@ public class KahootServer {
     
     // Lưu trữ các game session đang hoạt động: pinCode -> GameSessionHandler
     private ConcurrentHashMap<String, GameSessionHandler> activeGames;
+    // Lưu trữ các player đang chờ host bắt đầu game: pinCode -> list of pending players
+    private ConcurrentHashMap<String, java.util.List<PendingPlayer>> pendingPlayers;
     
     // Callback để cập nhật UI
     private ServerStatusCallback statusCallback;
@@ -44,10 +46,23 @@ public class KahootServer {
         this.clientThreadPool = Executors.newCachedThreadPool();
         this.activeClients = new ConcurrentHashMap<>();
         this.activeGames = new ConcurrentHashMap<>();
+        this.pendingPlayers = new ConcurrentHashMap<>();
     }
     
     public void setStatusCallback(ServerStatusCallback callback) {
         this.statusCallback = callback;
+    }
+
+    /**
+     * Add a player who joined before the host started the game.
+     */
+    public void addPendingPlayer(String pinCode, ClientHandler client, String playerName) {
+        pendingPlayers.compute(pinCode, (k, list) -> {
+            if (list == null) list = new java.util.ArrayList<>();
+            list.add(new PendingPlayer(client, playerName));
+            return list;
+        });
+        System.out.println("✓ Added pending player '" + playerName + "' for PIN: " + pinCode);
     }
 
     /**
@@ -141,6 +156,18 @@ public class KahootServer {
     public void registerGameSession(String pinCode, GameSessionHandler gameHandler) {
         activeGames.put(pinCode, gameHandler);
         System.out.println("Game session đã đăng ký với PIN: " + pinCode);
+        // Nếu có player chờ trước đó, thêm họ vào game handler
+        java.util.List<PendingPlayer> pending = pendingPlayers.remove(pinCode);
+        if (pending != null && !pending.isEmpty()) {
+            System.out.println("✓ Found " + pending.size() + " pending players for PIN: " + pinCode + ", adding to session...");
+            for (PendingPlayer pp : pending) {
+                try {
+                    gameHandler.addPlayer(pp.client, pp.playerName);
+                } catch (Exception e) {
+                    System.err.println("✗ Lỗi khi thêm pending player " + pp.playerName + " vào game: " + e.getMessage());
+                }
+            }
+        }
     }
 
     /**
@@ -241,6 +268,19 @@ public class KahootServer {
      */
     public interface ServerStatusCallback {
         void onLog(String message);
+    }
+
+    /**
+     * Small holder for pending players.
+     */
+    private static class PendingPlayer {
+        public final ClientHandler client;
+        public final String playerName;
+
+        public PendingPlayer(ClientHandler client, String playerName) {
+            this.client = client;
+            this.playerName = playerName;
+        }
     }
 }
 
