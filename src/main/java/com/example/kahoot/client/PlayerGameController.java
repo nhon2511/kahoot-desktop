@@ -37,6 +37,7 @@ public class PlayerGameController implements Initializable {
 
     private SocketClient socketClient;
     private String playerName;
+    private String joinedPin;
     private int currentScore = 0;
     private int currentQuestionNumber = 0;
     private int totalQuestions = 0;
@@ -65,9 +66,10 @@ public class PlayerGameController implements Initializable {
     /**
      * Thiết lập thông tin player và socket client.
      */
-    public void setup(String playerName, SocketClient socketClient) {
+    public void setup(String playerName, SocketClient socketClient, String joinedPin) {
         this.playerName = playerName;
         this.socketClient = socketClient;
+        this.joinedPin = joinedPin;
         
         if (playerNameLabel != null) {
             playerNameLabel.setText("Player: " + playerName);
@@ -79,6 +81,42 @@ public class PlayerGameController implements Initializable {
         if (socketClient != null) {
             socketClient.setMessageListener(this::handleServerMessage);
         }
+    }
+
+    @FXML
+    public void handleLeaveRoomAction(javafx.event.ActionEvent event) {
+        if (joinedPin == null || joinedPin.trim().isEmpty()) {
+            statusLabel.setText("Không có PIN để rời phòng.");
+            return;
+        }
+
+        // Send LEAVE_GAME to server (don't block UI)
+        new Thread(() -> {
+            try {
+                if (socketClient != null && socketClient.isConnected()) {
+                    String resp = socketClient.sendMessage("LEAVE_GAME|" + joinedPin);
+                    System.out.println("↩ LEAVE_GAME response: " + resp);
+                }
+            } catch (Exception e) {
+                System.err.println("✗ Lỗi khi gửi LEAVE_GAME: " + e.getMessage());
+            } finally {
+                // Disconnect and go back to join screen
+                if (socketClient != null) {
+                    socketClient.disconnect();
+                }
+                Platform.runLater(() -> {
+                    try {
+                        javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/views/player.fxml"));
+                        javafx.scene.Parent root = loader.load();
+                        javafx.stage.Stage stage = (javafx.stage.Stage) playerNameLabel.getScene().getWindow();
+                        stage.setScene(new javafx.scene.Scene(root, 900, 700));
+                        stage.setTitle("Tham gia game - Kahoot");
+                    } catch (Exception e) {
+                        System.err.println("✗ Lỗi khi chuyển về màn hình join: " + e.getMessage());
+                    }
+                });
+            }
+        }).start();
     }
     
     /**
@@ -115,6 +153,26 @@ public class PlayerGameController implements Initializable {
             case "GAME_ENDED":
                 System.out.println("  → Xử lý GAME_ENDED với " + parts.length + " parts");
                 handleGameEnded(parts);
+                break;
+            case "PLAYER_LEFT":
+                if (parts.length >= 2) {
+                    try {
+                        int cnt = Integer.parseInt(parts[1]);
+                        Platform.runLater(() -> {
+                            statusLabel.setText("Người chơi đã rời: còn " + cnt + " người");
+                        });
+                    } catch (NumberFormatException e) {
+                        System.err.println("✗ Lỗi parse PLAYER_LEFT: " + parts[1]);
+                    }
+                }
+                break;
+            case "NOTIFICATION":
+                if (parts.length >= 2) {
+                    String note = parts[1];
+                    Platform.runLater(() -> {
+                        statusLabel.setText(note);
+                    });
+                }
                 break;
             case "PLAYER_JOINED":
                 if (parts.length >= 2) {

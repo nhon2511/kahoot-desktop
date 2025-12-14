@@ -30,6 +30,7 @@ public class PlayerController implements Initializable {
 
     private SocketClient socketClient;
     private String playerName;
+    private String joinedPin;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -125,6 +126,9 @@ public class PlayerController implements Initializable {
                     System.out.println("🎮 Bắt đầu mở màn hình chơi game...");
                     System.out.println("═══════════════════════════════════════════");
                     
+                    // Lưu PIN đã join
+                    this.joinedPin = pinCode;
+
                     // Hiển thị thông báo trước
                     showMessage("Đã tham gia game thành công! Đang chuyển đến màn hình chơi game...", false);
                     
@@ -137,11 +141,11 @@ public class PlayerController implements Initializable {
                     
                     // Mở màn hình chơi game (đảm bảo chạy trên JavaFX thread)
                     Platform.runLater(() -> {
-                        try {
-                            System.out.println("🔄 Platform.runLater: Bắt đầu openGameScreen()");
-                            openGameScreen();
-                            System.out.println("✓ Platform.runLater: openGameScreen() hoàn thành");
-                        } catch (Exception e) {
+                            try {
+                                System.out.println("🔄 Platform.runLater: Bắt đầu openGameScreen()");
+                                openGameScreen();
+                                System.out.println("✓ Platform.runLater: openGameScreen() hoàn thành");
+                            } catch (Exception e) {
                             System.err.println("✗ Lỗi khi mở màn hình chơi game: " + e.getMessage());
                             e.printStackTrace();
                             showMessage("Lỗi khi mở màn hình chơi game: " + e.getMessage(), true);
@@ -248,7 +252,7 @@ public class PlayerController implements Initializable {
         }
         
         try {
-            gameController.setup(playerName, socketClient);
+            gameController.setup(playerName, socketClient, this.joinedPin);
             System.out.println("✓ Controller setup completed");
         } catch (Exception e) {
             System.err.println("✗ Lỗi khi setup controller: " + e.getMessage());

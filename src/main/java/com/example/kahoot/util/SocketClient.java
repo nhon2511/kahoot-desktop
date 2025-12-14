@@ -60,7 +60,11 @@ public class SocketClient {
             // Tạo socket với timeout để tránh lag
             socket = new Socket();
             socket.connect(new java.net.InetSocketAddress(host, port), 5000); // 5 giây timeout
-            socket.setSoTimeout(30000); // 30 giây timeout cho read operations
+            // Do not set a short SO_TIMEOUT for read operations; a read timeout here
+            // caused the listener thread to exit and the connection to be marked closed
+            // if the server doesn't send any broadcast for a while. Leave blocking read
+            // (soTimeout = 0) to keep the connection alive until socket is closed.
+            socket.setSoTimeout(0);
             
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new PrintWriter(socket.getOutputStream(), true);
@@ -109,12 +113,18 @@ public class SocketClient {
             try {
                 String message;
                 while (isConnected && socket != null && !socket.isClosed() && reader != null) {
-                    message = reader.readLine();
+                    try {
+                        message = reader.readLine();
+                    } catch (java.net.SocketTimeoutException ste) {
+                        // Read timed out - not a fatal error, just continue waiting
+                        continue;
+                    }
+
                     if (message == null) {
                         // Server đã đóng kết nối
                         break;
                     }
-                    
+
                     System.out.println("Nhận được message từ server: " + message);
                     
                     // Nếu đang đợi response đồng bộ, chỉ đưa vào queue nếu là response hợp lệ
@@ -174,23 +184,25 @@ public class SocketClient {
         
         String command = message.split("\\|")[0];
         
-        // Các command hợp lệ cho response đồng bộ
-        return command.equals("JOIN_SUCCESS") ||
-               command.equals("JOIN_FAILED") ||
-               command.equals("LOGIN_SUCCESS") ||
-               command.equals("LOGIN_FAILED") ||
-               command.equals("REGISTER_SUCCESS") ||
-               command.equals("REGISTER_FAILED") ||
-               command.equals("QUIZ_CREATED") ||
-               command.equals("QUIZZES") ||
-               command.equals("GAME_STARTED") ||
-               command.equals("START_QUESTION_OK") ||
-               command.equals("NEXT_QUESTION_OK") ||
-               command.equals("SHOW_RESULTS_OK") ||
-               command.equals("GAME_ENDED") ||
-               command.equals("ANSWER_ACCEPTED") ||
-               command.equals("ERROR") ||
-               command.startsWith("ERROR");
+         // Các command hợp lệ cho response đồng bộ
+         // NOTE: Broadcast messages like GAME_ENDED should NOT be treated as a direct response
+         // to a synchronous request, otherwise a broadcast can be returned as the response
+         // for an unrelated request. Keep the list strictly to request-specific responses.
+         return command.equals("JOIN_SUCCESS") ||
+             command.equals("JOIN_FAILED") ||
+             command.equals("LOGIN_SUCCESS") ||
+             command.equals("LOGIN_FAILED") ||
+             command.equals("REGISTER_SUCCESS") ||
+             command.equals("REGISTER_FAILED") ||
+             command.equals("QUIZ_CREATED") ||
+             command.equals("QUIZZES") ||
+             command.equals("GAME_STARTED") ||
+             command.equals("START_QUESTION_OK") ||
+             command.equals("NEXT_QUESTION_OK") ||
+             command.equals("SHOW_RESULTS_OK") ||
+             command.equals("ANSWER_ACCEPTED") ||
+             command.equals("ERROR") ||
+             command.startsWith("ERROR");
     }
     
     /**

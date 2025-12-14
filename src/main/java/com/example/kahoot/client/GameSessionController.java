@@ -24,6 +24,10 @@ public class GameSessionController implements Initializable {
     @FXML private Button showResultsButton;
     @FXML private javafx.scene.control.ListView<String> playerListView;
     @FXML private javafx.scene.control.ListView<String> notificationListView;
+    @FXML private javafx.scene.control.TextField serverHostField;
+    @FXML private javafx.scene.control.TextField serverPortField;
+    @FXML private Button connectButton;
+    @FXML private Label connectionStatusLabel;
 
     private GameSession currentSession;
     private GameSessionDAO sessionDAO;
@@ -35,15 +39,67 @@ public class GameSessionController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         try {
             sessionDAO = new GameSessionDAO();
-            // Kết nối đến server trên máy thật (192.168.1.102:8888)
-            socketClient = new SocketClient("192.168.1.102", 8888);
-            // Kết nối đến server (không bắt buộc ngay, có thể kết nối sau)
-            // Không kết nối ngay trong initialize để tránh block UI
-            // Sẽ kết nối khi startGame() được gọi
+            // Không khởi tạo SocketClient cố định ở đây để tránh hard-coded IP gây lỗi kết nối
+            // SocketClient sẽ được tạo khi người dùng nhấn 'Kết nối' hoặc khi startGame() cần kết nối tự động
+            socketClient = null;
+            if (connectionStatusLabel != null) connectionStatusLabel.setText("Chưa kết nối");
         } catch (Exception e) {
             System.err.println("✗ Lỗi khi khởi tạo GameSessionController: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Thử kết nối tới server theo host/port được nhập trong UI (non-blocking).
+     */
+    @FXML
+    public void handleConnectAction(ActionEvent event) {
+        String host = (serverHostField != null) ? serverHostField.getText().trim() : "localhost";
+        String portStr = (serverPortField != null) ? serverPortField.getText().trim() : "8888";
+        int port;
+        try {
+            port = Integer.parseInt(portStr);
+        } catch (NumberFormatException e) {
+            updateConnectionStatus("Port không hợp lệ", true);
+            return;
+        }
+
+        // Disable connect button while attempting
+        Platform.runLater(() -> { if (connectButton != null) connectButton.setDisable(true); });
+        updateConnectionStatus("Đang kết nối...", false);
+
+        final int fp = port;
+        final String fh = host;
+        new Thread(() -> {
+            try {
+                SocketClient sc = new SocketClient(fh, fp);
+                if (sc.connect()) {
+                    // Successful connection
+                    sc.setMessageListener(this::handleServerMessage);
+                    // Swap current socket and update UI
+                    socketClient = sc;
+                    updateConnectionStatus("Đã kết nối: " + fh + ":" + fp, false);
+                    // Re-enable connect button
+                    Platform.runLater(() -> { if (connectButton != null) connectButton.setDisable(false); });
+                } else {
+                    updateConnectionStatus("Không thể kết nối đến " + fh + ":" + fp, true);
+                    Platform.runLater(() -> { if (connectButton != null) connectButton.setDisable(false); });
+                }
+            } catch (Exception e) {
+                updateConnectionStatus("Lỗi khi kết nối: " + e.getMessage(), true);
+                Platform.runLater(() -> { if (connectButton != null) connectButton.setDisable(false); });
+            }
+        }).start();
+    }
+
+    private void updateConnectionStatus(String msg, boolean isError) {
+        Platform.runLater(() -> {
+            if (connectionStatusLabel != null) connectionStatusLabel.setText(msg);
+            if (messageLabel != null && isError) {
+                showMessage(msg, true);
+            }
+            System.out.println("Connection status: " + msg);
+        });
     }
     
     /**
@@ -107,6 +163,20 @@ public class GameSessionController implements Initializable {
                         showTemporaryMessage(note);
                         System.out.println("🔔 Thông báo: " + note);
                     });
+                }
+                break;
+            case "PLAYER_LEFT":
+                if (parts.length >= 2) {
+                    try {
+                        int playerCount = Integer.parseInt(parts[1]);
+                        Platform.runLater(() -> {
+                            updatePlayerCount(playerCount);
+                            showTemporaryMessage("Một người chơi đã rời phòng. Còn " + playerCount + " người.");
+                            System.out.println("✓ PLAYER_LEFT: " + playerCount);
+                        });
+                    } catch (NumberFormatException e) {
+                        System.err.println("✗ Lỗi parse PLAYER_LEFT: " + parts[1]);
+                    }
                 }
                 break;
             case "GAME_ENDED":
@@ -203,44 +273,44 @@ public class GameSessionController implements Initializable {
                 });
                 
                 // Kết nối đến server nếu chưa kết nối
-                        if (socketClient == null) {
-                            socketClient = new SocketClient("192.168.1.102", 8888);
-                        }
+                        // Ensure we have a connected SocketClient. Prefer the one set from UI if available
+                        if (socketClient == null || !socketClient.isConnected()) {
+                            // Try host/port from UI fields first
+                            String host = (serverHostField != null && serverHostField.getText() != null && !serverHostField.getText().trim().isEmpty()) ? serverHostField.getText().trim() : "localhost";
+                            int port = 8888;
+                            try {
+                                if (serverPortField != null && serverPortField.getText() != null && !serverPortField.getText().trim().isEmpty()) {
+                                    port = Integer.parseInt(serverPortField.getText().trim());
+                                }
+                            } catch (NumberFormatException ignored) {}
 
-                        if (!socketClient.isConnected()) {
-                            System.out.println("🔄 Đang kết nối đến server (thử): " + socketClient.getServerHost() + ":" + socketClient.getServerPort());
-
-                            // Thử kết nối tới host mặc định; nếu thất bại, thử localhost và 127.0.0.1
-                            String[] tryHosts = new String[] { socketClient.getServerHost(), "localhost", "127.0.0.1" };
+                            // Try connect synchronously but not blocking UI (we are already in background thread)
                             boolean connected = false;
+                            String[] tryHosts = new String[] { host, "localhost", "127.0.0.1" };
                             for (String h : tryHosts) {
-                                if (h == null) continue;
-                                SocketClient sc = new SocketClient(h, socketClient.getServerPort());
-                                System.out.println("🔁 Thử kết nối tới: " + h + ":" + sc.getServerPort());
-                                if (sc.connect()) {
-                                    socketClient = sc; // swap to working client
+                                try {
+                                    SocketClient sc = new SocketClient(h, port);
+                                    System.out.println("🔁 Thử kết nối tới: " + h + ":" + port);
+                                    if (sc.connect()) {
+                                        socketClient = sc;
                                         socketClient.setMessageListener(this::handleServerMessage);
-                                    System.out.println("✓ Đã kết nối thành công đến: " + h + ":" + sc.getServerPort());
-                                    connected = true;
-                                    break;
-                                } else {
-                                    System.err.println("✗ Không thể kết nối tới: " + h);
+                                        updateConnectionStatus("Đã kết nối: " + h + ":" + port, false);
+                                        connected = true;
+                                        break;
+                                    }
+                                } catch (Exception e) {
+                                    System.err.println("✗ Lỗi khi thử kết nối đến " + h + ":" + port + " -> " + e.getMessage());
                                 }
                             }
 
                             if (!connected) {
-                                final String attempted = String.join(", ", tryHosts);
+                                final String attempted = host + ", localhost, 127.0.0.1";
                                 Platform.runLater(() -> {
-                                    showMessage("Cảnh báo: Không kết nối được với server! Các host đã thử: " + attempted + ".\n" +
-                                              "Kiểm tra:\n- Server đang chạy và Firewall không chặn\n- Địa chỉ IP/Port đúng", true);
+                                    showMessage("Cảnh báo: Không kết nối được với server! Các host đã thử: " + attempted + ".\nKiểm tra server và firewall.", true);
                                 });
                                 return;
                             }
                         }
-                    // Ensure we always have a listener set for incoming messages
-                    if (socketClient != null && socketClient.isConnected()) {
-                        socketClient.setMessageListener(this::handleServerMessage);
-                    }
                 
                 // Gửi START_GAME message đến server
                 String message = "START_GAME|" + pinCode;

@@ -99,6 +99,9 @@ public class ClientHandler implements Runnable {
                 case "START_QUESTION":
                     handleStartQuestion(parts);
                     break;
+                case "LEAVE_GAME":
+                    handleLeaveGame(parts);
+                    break;
                 default:
                     sendResponse("ERROR|Unknown command: " + command);
             }
@@ -392,6 +395,29 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void handleLeaveGame(String[] parts) {
+        if (parts.length < 2) {
+            sendResponse("ERROR|Invalid leave game format");
+            return;
+        }
+
+        String pinCode = parts[1];
+        System.out.println("↩ Player requests to leave game: " + pinCode);
+
+        try {
+            GameSessionHandler gameHandler = server.getGameSession(pinCode);
+            if (gameHandler != null) {
+                gameHandler.removePlayer(this);
+                sendResponse("LEFT_GAME|" + pinCode);
+            } else {
+                sendResponse("ERROR|Game session not found");
+            }
+        } catch (Exception e) {
+            System.err.println("✗ Lỗi khi xử lý LEAVE_GAME: " + e.getMessage());
+            sendResponse("ERROR|" + e.getMessage());
+        }
+    }
+
     private void handleNextQuestion(String[] parts) {
         if (parts.length < 2) {
             sendResponse("ERROR|Invalid next question format");
@@ -449,7 +475,8 @@ public class ClientHandler implements Runnable {
             if (gameHandler != null) {
                 gameHandler.endGame();
                 server.unregisterGameSession(pinCode);
-                sendResponse("GAME_ENDED");
+                // Acknowledge the host's request to end the game with a confirmation response.
+                sendResponse("END_GAME_OK");
             } else {
                 sendResponse("ERROR|Game session not found");
             }
@@ -504,6 +531,16 @@ public class ClientHandler implements Runnable {
             if (writer != null) writer.close();
             if (socket != null) socket.close();
             
+            // Nếu client đang nằm trong một game session, loại bỏ họ khỏi session
+            try {
+                GameSessionHandler gh = findGameHandlerForPlayer();
+                if (gh != null) {
+                    gh.removePlayer(this);
+                }
+            } catch (Exception e) {
+                System.err.println("✗ Lỗi khi loại bỏ player khỏi session trong closeConnection: " + e.getMessage());
+            }
+
             if (sessionId > 0) {
                 server.unregisterClient(sessionId);
             }

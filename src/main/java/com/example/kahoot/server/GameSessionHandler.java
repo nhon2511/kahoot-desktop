@@ -139,6 +139,13 @@ public class GameSessionHandler {
                 System.err.println("✗ Lỗi khi gửi NOTIFICATION đến host: " + e.getMessage());
             }
         }
+
+        // Gửi thông báo (notification) tới tất cả players để họ thấy ai vừa vào
+        try {
+            broadcastToAll("NOTIFICATION|Player '" + playerName + "' joined the game");
+        } catch (Exception e) {
+            System.err.println("✗ Lỗi khi broadcast NOTIFICATION join: " + e.getMessage());
+        }
         
         System.out.println("  Game PIN: " + session.getPinCode());
         System.out.println("  Số lượng player hiện tại: " + playerCount);
@@ -662,6 +669,20 @@ public class GameSessionHandler {
         
         System.out.println("Game session đã kết thúc: " + session.getPinCode());
         System.out.println("  Game State: " + gameState);
+        // Đăng ký dọn dẹp session trên server để tránh session bị để lại
+        try {
+            server.unregisterGameSession(session.getPinCode());
+            System.out.println("✓ Đã unregister session trên server: " + session.getPinCode());
+        } catch (Exception e) {
+            System.err.println("✗ Lỗi khi unregister session từ endGame: " + e.getMessage());
+        }
+
+        // Thông báo tới tất cả (nếu vẫn có kết nối)
+        try {
+            broadcastToAll("NOTIFICATION|Game has ended. Thank you for playing!");
+        } catch (Exception e) {
+            System.err.println("✗ Lỗi khi broadcast game ended notification: " + e.getMessage());
+        }
     }
     
     public GameState getGameState() {
@@ -702,6 +723,58 @@ public class GameSessionHandler {
 
     public List<ClientHandler> getPlayers() {
         return players;
+    }
+
+    /**
+     * Loại bỏ player khỏi session (khi player rời phòng hoặc mất kết nối).
+     */
+    public synchronized void removePlayer(ClientHandler player) {
+        if (player == null) return;
+
+        String name = playerNames.getOrDefault(player, "Unknown");
+        boolean removed = players.remove(player);
+        playerScores.remove(player);
+        playerNames.remove(player);
+        playerAnswers.remove(player);
+        answerTimes.remove(player);
+
+        if (removed) {
+            int count = players.size();
+            System.out.println("✓ Player '" + name + "' đã rời phòng. Số người còn lại: " + count);
+
+            // Thông báo tới tất cả players
+            broadcastToAll("PLAYER_LEFT|" + count);
+            broadcastToAll("NOTIFICATION|Player '" + name + "' left the game");
+
+            // Cập nhật player list cho host nếu có
+            if (host != null) {
+                try {
+                    StringBuilder sb = new StringBuilder();
+                    for (String n : playerNames.values()) {
+                        sb.append(n.replace(";", "")).append(";");
+                    }
+                    String encoded = java.net.URLEncoder.encode(sb.toString(), java.nio.charset.StandardCharsets.UTF_8.name());
+                    host.sendResponse("PLAYER_LIST|" + encoded);
+                } catch (Exception e) {
+                    System.err.println("✗ Lỗi khi gửi PLAYER_LIST đến host sau khi rời phòng: " + e.getMessage());
+                }
+                try {
+                    host.sendResponse("NOTIFICATION|Player '" + name + "' left the game");
+                } catch (Exception e) {
+                    System.err.println("✗ Lỗi khi gửi NOTIFICATION rời phòng tới host: " + e.getMessage());
+                }
+            }
+
+            // Nếu không còn players và game đã kết thúc, có thể dọn dẹp
+            if (players.isEmpty() && gameState == GameState.FINISHED) {
+                System.out.println("ℹ Không còn người chơi và game đã kết thúc, dọn dẹp session: " + session.getPinCode());
+                try {
+                    server.unregisterGameSession(session.getPinCode());
+                } catch (Exception e) {
+                    System.err.println("✗ Lỗi khi unregister session: " + e.getMessage());
+                }
+            }
+        }
     }
 
     public boolean isActive() {

@@ -16,6 +16,7 @@
             <Label fx:id="playerNameLabel" text="Player: " style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
             <Label fx:id="scoreLabel" text="Điểm: 0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #28a745;" />
             <Label fx:id="timerLabel" text="00:00" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #dc3545; -fx-background-color: white; -fx-background-radius: 10; -fx-padding: 10 20;" />
+            <Button text="Rời phòng" onAction="#handleLeaveRoomAction" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 12;" />
         </HBox>
         
         <!-- Question Info -->
