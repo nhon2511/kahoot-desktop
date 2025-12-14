@@ -247,21 +247,37 @@ public class GameSessionHandler {
                 return;
             }
             
-            // Tạo response
+            // Tạo response (encode text fields để tránh xung đột với ký tự phân tách '|')
+            String qText = currentQuestion.getQuestionText();
+            try {
+                qText = URLEncoder.encode(qText == null ? "" : qText, StandardCharsets.UTF_8.name());
+            } catch (Exception ex) {
+                System.err.println("⚠ Không thể encode question text: " + ex.getMessage());
+            }
+
             StringBuilder response = new StringBuilder("QUESTION|");
             response.append(currentQuestion.getQuestionId()).append("|");
-            response.append(currentQuestion.getQuestionText()).append("|");
+            response.append(qText).append("|");
             response.append(currentQuestion.getTimeLimit()).append("|");
             response.append(currentQuestion.getPointValue()).append("|");
             response.append(currentQuestion.getQuestionOrder()).append("|");
             response.append(questions.size()).append("|");
-            
+
             for (Option option : options) {
+                String optText = option.getOptionText();
+                try {
+                    optText = URLEncoder.encode(optText == null ? "" : optText, StandardCharsets.UTF_8.name());
+                } catch (Exception ex) {
+                    System.err.println("⚠ Không thể encode option text: " + ex.getMessage());
+                }
+
                 response.append(option.getOptionId()).append("|");
-                response.append(option.getOptionText()).append("|");
+                response.append(optText).append("|");
             }
             
-            broadcastToAll(response.toString());
+            String fullMsg = response.toString();
+            System.out.println("📤 Broadcast QUESTION message: " + fullMsg);
+            broadcastToAll(fullMsg);
             System.out.println("✓ Đã gửi câu hỏi " + (currentQuestionIndex + 1) + "/" + questions.size() + " đến tất cả players");
             System.out.println("  Game State: " + gameState);
         } catch (Exception e) {
@@ -362,11 +378,22 @@ public class GameSessionHandler {
     public void nextQuestion() {
         // Kiểm tra state một cách thread-safe
         synchronized (this) {
-            if (gameState != GameState.RESULT && gameState != GameState.WAITING) {
-                System.err.println("✗ Không thể chuyển câu hỏi: Game state = " + gameState);
+            System.out.println("🔁 nextQuestion() called. currentQuestionIndex=" + currentQuestionIndex + ", total=" + (questions != null ? questions.size() : 0) + ", gameState=" + gameState);
+            if (gameState == GameState.QUESTION) {
+                // Host pressed next while question still open - force show results first
+                System.out.println("ℹ Host yêu cầu chuyển câu hỏi trong khi question còn đang mở - gọi showResults() trước");
+                try {
+                    showResults();
+                } catch (Exception e) {
+                    System.err.println("⚠ Lỗi khi gọi showResults trước khi nextQuestion: " + e.getMessage());
+                }
+            } else if (gameState != GameState.RESULT && gameState != GameState.WAITING) {
+                System.err.println("✗ Không thể chuyển câu hỏi: Game state = " + gameState + " - yêu cầu state RESULT hoặc WAITING");
                 return;
             }
+
             currentQuestionIndex++;
+            System.out.println("🔁 nextQuestion() -> new currentQuestionIndex=" + currentQuestionIndex);
         }
         
         if (currentQuestionIndex < questions.size()) {

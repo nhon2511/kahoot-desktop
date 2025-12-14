@@ -141,6 +141,7 @@ public class PlayerGameController implements Initializable {
             int pointValue = Integer.parseInt(parts[4]);
             int questionNumber = Integer.parseInt(parts[5]);
             int totalQuestions = Integer.parseInt(parts[6]);
+            System.out.println("📨 Parsed QUESTION: id=" + questionId + ", text='" + questionText + "', timeLimit=" + timeLimit + ", pointValue=" + pointValue + ", questionNumber=" + questionNumber + ", totalQuestions=" + totalQuestions + ", rawParts=" + parts.length);
             
             Question question = new Question(questionId, 0, questionText, questionNumber, timeLimit, pointValue);
             
@@ -155,6 +156,7 @@ public class PlayerGameController implements Initializable {
                     } catch (Exception ex) {
                         System.err.println("⚠ Không thể decode optionText: " + ex.getMessage());
                     }
+                    System.out.println("   → Option parsed: id=" + optionId + ", text='" + optionText + "'");
                     options.add(new Option(optionId, questionId, optionText, false));
                 }
             }
