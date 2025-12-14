@@ -4,3 +4,22 @@
 .button {
     -fx-font-size: 14px;
 }
+
+/* Sidebar lists */
+.list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e6e6e6;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.header-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+.notification-item {
+    -fx-font-size: 13px;
+    -fx-text-fill: #555555;
+}

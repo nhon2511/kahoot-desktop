@@ -22,6 +22,8 @@ public class GameSessionController implements Initializable {
     @FXML private Label playerCountLabel;
     @FXML private Button startQuestionButton;
     @FXML private Button showResultsButton;
+    @FXML private javafx.scene.control.ListView<String> playerListView;
+    @FXML private javafx.scene.control.ListView<String> notificationListView;
 
     private GameSession currentSession;
     private GameSessionDAO sessionDAO;
@@ -69,7 +71,86 @@ public class GameSessionController implements Initializable {
                     }
                 }
                 break;
+            case "PLAYER_LIST":
+                if (parts.length >= 2) {
+                    String encoded = parts[1];
+                    try {
+                        String decoded = java.net.URLDecoder.decode(encoded, java.nio.charset.StandardCharsets.UTF_8.name());
+                        String[] names = decoded.split(";");
+                        Platform.runLater(() -> {
+                            if (playerListView != null) {
+                                playerListView.getItems().clear();
+                                int count = 0;
+                                for (String n : names) {
+                                    if (n != null && !n.trim().isEmpty()) {
+                                        playerListView.getItems().add(n);
+                                        count++;
+                                    }
+                                }
+                                updatePlayerCount(count);
+                                System.out.println("✓ Cập nhật PLAYER_LIST: " + count + " entries");
+                            }
+                        });
+                    } catch (Exception e) {
+                        System.err.println("✗ Lỗi decode PLAYER_LIST: " + e.getMessage());
+                    }
+                }
+                break;
+            case "NOTIFICATION":
+                if (parts.length >= 2) {
+                    String note = parts[1];
+                    Platform.runLater(() -> {
+                        if (notificationListView != null) {
+                            notificationListView.getItems().add(0, note);
+                        }
+                        // Also briefly show in messageLabel
+                        showTemporaryMessage(note);
+                        System.out.println("🔔 Thông báo: " + note);
+                    });
+                }
+                break;
+            case "GAME_ENDED":
+                // Host may receive final leaderboard
+                if (parts.length >= 4) {
+                    String encodedLeaderboard = parts[3];
+                    try {
+                        String decoded = java.net.URLDecoder.decode(encodedLeaderboard, java.nio.charset.StandardCharsets.UTF_8.name());
+                        Platform.runLater(() -> {
+                            // Show final leaderboard in message area and notification list
+                            showMessage("Game ended. Final leaderboard updated.", false);
+                            if (notificationListView != null) notificationListView.getItems().add(0, "Final leaderboard received");
+
+                            // Parse leaderboard entries and add to player list for quick view
+                            if (playerListView != null) {
+                                playerListView.getItems().clear();
+                                String[] entries = decoded.split(";");
+                                for (String entry : entries) {
+                                    if (entry == null || entry.trim().isEmpty()) continue;
+                                    playerListView.getItems().add(entry);
+                                }
+                            }
+
+                            System.out.println("📊 Host nhận final leaderboard: " + decoded);
+                        });
+                    } catch (Exception e) {
+                        System.err.println("✗ Lỗi decode GAME_ENDED leaderboard: " + e.getMessage());
+                    }
+                }
+                break;
         }
+    }
+
+    private void showTemporaryMessage(String msg) {
+        if (messageLabel == null) return;
+        messageLabel.setText(msg);
+        new Thread(() -> {
+            try {
+                Thread.sleep(4000);
+            } catch (InterruptedException ignored) {}
+            javafx.application.Platform.runLater(() -> {
+                messageLabel.setText("");
+            });
+        }).start();
     }
 
     /**
@@ -138,7 +219,7 @@ public class GameSessionController implements Initializable {
                                 System.out.println("🔁 Thử kết nối tới: " + h + ":" + sc.getServerPort());
                                 if (sc.connect()) {
                                     socketClient = sc; // swap to working client
-                                    socketClient.setMessageListener(this::handleServerMessage);
+                                        socketClient.setMessageListener(this::handleServerMessage);
                                     System.out.println("✓ Đã kết nối thành công đến: " + h + ":" + sc.getServerPort());
                                     connected = true;
                                     break;
@@ -156,6 +237,10 @@ public class GameSessionController implements Initializable {
                                 return;
                             }
                         }
+                    // Ensure we always have a listener set for incoming messages
+                    if (socketClient != null && socketClient.isConnected()) {
+                        socketClient.setMessageListener(this::handleServerMessage);
+                    }
                 
                 // Gửi START_GAME message đến server
                 String message = "START_GAME|" + pinCode;

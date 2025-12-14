@@ -12,34 +12,43 @@
     <VBox spacing="30" alignment="CENTER" AnchorPane.topAnchor="50" AnchorPane.leftAnchor="50" AnchorPane.rightAnchor="50">
         <Label text="Game đã bắt đầu!" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
         
-        <VBox spacing="15" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 40;">
+        <HBox spacing="20" alignment="TOP_CENTER">
+            <VBox spacing="15" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 30; -fx-pref-width: 420;">
             <Label text="Mã PIN để tham gia:" style="-fx-font-size: 18px; -fx-text-fill: #333;" />
-            
+
             <Label fx:id="pinCodeLabel" text="000000" 
                    style="-fx-font-size: 48px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF; -fx-background-color: #f0f0f0; -fx-background-radius: 10; -fx-padding: 20;" />
-            
+
             <Label fx:id="quizTitleLabel" text="" style="-fx-font-size: 16px; -fx-text-fill: #666;" />
-            
+
             <Label fx:id="playerCountLabel" text="Số người chơi: 0" style="-fx-font-size: 14px; -fx-text-fill: #28a745; -fx-font-weight: bold;" />
-            
+
             <Separator prefWidth="400" />
-            
+
             <HBox spacing="15" alignment="CENTER">
                 <Button fx:id="startQuestionButton" text="Bắt đầu câu hỏi" onAction="#handleStartQuestionAction"
-                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
+                    style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
                 <Button fx:id="showResultsButton" text="Hiển thị kết quả" onAction="#handleShowResultsAction"
-                        style="-fx-background-color: #ffc107; -fx-text-fill: #333; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
+                    style="-fx-background-color: #ffc107; -fx-text-fill: #333; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
             </HBox>
-            
+
             <HBox spacing="15" alignment="CENTER">
                 <Button text="Kết thúc Game" onAction="#handleEndGameAction"
-                        style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
+                    style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
                 <Button text="Đóng" onAction="#handleCloseAction"
-                        style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
+                    style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
             </HBox>
-            
+
             <Label fx:id="messageLabel" style="-fx-text-fill: red; -fx-font-size: 12px;" text="" />
-        </VBox>
+            </VBox>
+
+            <VBox spacing="10" alignment="TOP_CENTER" style="-fx-pref-width: 220;">
+                <Label text="Người chơi trong phòng" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;" styleClass="header-label" />
+                <ListView fx:id="playerListView" prefHeight="180" styleClass="list-view" />
+                <Label text="Thông báo" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #666;" styleClass="header-label" />
+                <ListView fx:id="notificationListView" prefHeight="120" styleClass="list-view" />
+            </VBox>
+        </HBox>
     </VBox>
     
 </AnchorPane>

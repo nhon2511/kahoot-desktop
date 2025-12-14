@@ -53,7 +53,8 @@ public class PlayerGameController implements Initializable {
             if (leaderboardListView != null) {
                 leaderboardListView.getItems().clear();
                 leaderboardListView.getItems().add("Đang chờ dữ liệu xếp hạng...");
-                leaderboardListView.setVisible(true);
+                // Keep leaderboard hidden until the game ends
+                leaderboardListView.setVisible(false);
                 System.out.println("✓ Leaderboard ListView đã được khởi tạo");
             } else {
                 System.err.println("✗ leaderboardListView là null trong initialize!");
@@ -218,21 +219,9 @@ public class PlayerGameController implements Initializable {
             Platform.runLater(() -> {
                 // Highlight đáp án đúng
                 highlightCorrectAnswer(correctOptionId);
-                
-                // Hiển thị leaderboard (luôn hiển thị, kể cả nếu rỗng)
-                if (leaderboardData != null && !leaderboardData.trim().isEmpty()) {
-                    displayLeaderboard(leaderboardData);
-                } else {
-                    System.err.println("⚠ Leaderboard data rỗng trong SHOW_RESULTS");
-                    if (leaderboardListView != null) {
-                        leaderboardListView.getItems().clear();
-                        leaderboardListView.getItems().add("Đang cập nhật xếp hạng...");
-                    }
-                }
-                
-                // Đảm bảo leaderboard được hiển thị
+                // Do not show the final leaderboard here on player; it will be shown only after GAME_ENDED
                 if (leaderboardListView != null) {
-                    leaderboardListView.setVisible(true);
+                    leaderboardListView.setVisible(false);
                 }
                 
                 statusLabel.setText("Chờ host chuyển sang câu hỏi tiếp theo...");

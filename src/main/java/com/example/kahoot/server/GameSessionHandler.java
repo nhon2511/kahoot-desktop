@@ -114,6 +114,31 @@ public class GameSessionHandler {
                 System.err.println("✗ Lỗi khi gửi PLAYER_JOINED đến host: " + e.getMessage());
             }
         }
+
+        // Gửi player list tới host để host có thể hiển thị danh sách người chơi
+        if (host != null) {
+            try {
+                // Build encoded list of player names separated by semicolon
+                StringBuilder sb = new StringBuilder();
+                for (String name : playerNames.values()) {
+                    sb.append(name.replace(";", "\uFF1B")).append(";");
+                }
+                String encodedList = java.net.URLEncoder.encode(sb.toString(), java.nio.charset.StandardCharsets.UTF_8.name());
+                host.sendResponse("PLAYER_LIST|" + encodedList);
+                System.out.println("✓ Đã gửi PLAYER_LIST đến host: " + sb.toString());
+            } catch (Exception e) {
+                System.err.println("✗ Lỗi khi gửi PLAYER_LIST đến host: " + e.getMessage());
+            }
+        }
+
+        // Gửi thông báo tới host
+        if (host != null) {
+            try {
+                host.sendResponse("NOTIFICATION|Player '" + playerName + "' joined the game");
+            } catch (Exception e) {
+                System.err.println("✗ Lỗi khi gửi NOTIFICATION đến host: " + e.getMessage());
+            }
+        }
         
         System.out.println("  Game PIN: " + session.getPinCode());
         System.out.println("  Số lượng player hiện tại: " + playerCount);
@@ -615,6 +640,24 @@ public class GameSessionHandler {
             String message = "GAME_ENDED|" + finalScore + "|" + rank + "|" + encodedLeaderboard;
             System.out.println("  → Gửi đến player: " + playerNames.getOrDefault(player, "Unknown") + " - " + message);
             player.sendResponse(message);
+        }
+
+        // Gửi GAME_ENDED đến host nếu host không nằm trong players
+        if (host != null && !players.contains(host)) {
+            try {
+                System.out.println("  → Gửi GAME_ENDED đến host: " + host);
+                // For host, finalScore/rank are not applicable (use totals from leaderboard)
+                String encodedLeaderboard;
+                try {
+                    encodedLeaderboard = URLEncoder.encode(finalLeaderboard, StandardCharsets.UTF_8.name());
+                } catch (Exception ex) {
+                    System.err.println("⚠ Không thể encode final leaderboard for host: " + ex.getMessage());
+                    encodedLeaderboard = finalLeaderboard;
+                }
+                host.sendResponse("GAME_ENDED|0|0|" + encodedLeaderboard);
+            } catch (Exception e) {
+                System.err.println("✗ Lỗi khi gửi GAME_ENDED đến host: " + e.getMessage());
+            }
         }
         
         System.out.println("Game session đã kết thúc: " + session.getPinCode());
