@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.kahoot.client.CreateQuizController"
+            prefWidth="600" prefHeight="400"
+            style="-fx-background-color: #f5f5f5;">
+    
+    <VBox spacing="20" alignment="CENTER" AnchorPane.topAnchor="30" AnchorPane.leftAnchor="50" AnchorPane.rightAnchor="50">
+        <Label text="Tạo Quiz Mới" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
+        
+        <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 30;" prefWidth="500">
+            <Label text="Thông tin Quiz" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+            
+            <VBox spacing="10">
+                <Label text="Tiêu đề Quiz:" style="-fx-font-size: 14px;" />
+                <TextField fx:id="titleField" promptText="Nhập tiêu đề quiz" prefHeight="35" />
+            </VBox>
+            
+            <VBox spacing="10">
+                <Label text="Mã truy cập (6 chữ số):" style="-fx-font-size: 14px;" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="accessCodeField" promptText="Tự động tạo" prefWidth="200" prefHeight="35" />
+                    <Button text="Tạo mã mới" onAction="#handleGenerateCodeAction" 
+                            style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-background-radius: 5;" />
+                </HBox>
+            </VBox>
+            
+            <Label fx:id="messageLabel" style="-fx-text-fill: red; -fx-font-size: 12px;" text="" />
+            
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="Hủy" onAction="#handleCancelButtonAction" 
+                        prefWidth="120" prefHeight="40"
+                        style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" />
+                <Button text="Tạo Quiz" onAction="#handleCreateButtonAction" 
+                        prefWidth="120" prefHeight="40"
+                        style="-fx-background-color: #7B2CBF; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" />
+            </HBox>
+        </VBox>
+    </VBox>
+    
+</AnchorPane>
+
+
+
+
+

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.kahoot.client.HostDashboardController"
+            prefWidth="800" prefHeight="600"
+            style="-fx-background-color: #f5f5f5;">
+    
+    <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <!-- Header -->
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Kahoot Desktop" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="welcomeLabel" text="Xin chào!" style="-fx-font-size: 14px; -fx-text-fill: #333;" />
+            <Button fx:id="logoutButton" text="Đăng xuất" onAction="#handleLogoutButtonAction"
+                    style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-background-radius: 5;" />
+        </HBox>
+        
+        <!-- Main Content -->
+        <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+            <Label text="Host Dashboard" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+            
+            <Separator />
+            
+            <!-- Buttons Section -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Button fx:id="createQuizButton" text="Tạo Quiz Mới" onAction="#handleCreateQuizButtonAction"
+                        prefWidth="150" prefHeight="40"
+                        style="-fx-background-color: #7B2CBF; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" />
+                <Button fx:id="manageQuizButton" text="Quản lý Quiz" onAction="#handleManageQuizButtonAction"
+                        prefWidth="150" prefHeight="40"
+                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" />
+                <Button fx:id="startGameButton" text="Bắt đầu Game" onAction="#handleStartGameButtonAction"
+                        prefWidth="150" prefHeight="40"
+                        style="-fx-background-color: #ffc107; -fx-text-fill: #333; -fx-font-weight: bold; -fx-background-radius: 5;" />
+            </HBox>
+            
+            <Separator />
+            
+            <!-- Quiz List Section -->
+            <VBox spacing="10">
+                <Label text="Danh sách Quiz của bạn:" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                <ListView fx:id="quizListView" prefHeight="300" />
+            </VBox>
+        </VBox>
+    </VBox>
+    
+</AnchorPane>

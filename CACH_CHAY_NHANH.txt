@@ -1,0 +1,33 @@
+========================================
+   CACH CHAY NHANH NHAT
+========================================
+
+CHI CAN DOUBLE-CLICK:
+   run.bat
+   
+   -> Tu dong chay ca Server va Client!
+
+
+HOAC CHAY RIENG:
+   run-server.bat   -> Chi Server
+   run-client.bat   -> Chi Client
+
+
+========================================
+   TAI KHOAN TEST
+========================================
+Username: admin
+Password: admin123
+
+========================================
+   LUU Y
+========================================
+1. MySQL phai dang chay
+2. Database phai da setup (sql/init_database.sql)
+3. Trong Server Dashboard, nhan "Khoi dong Server" truoc khi dung Client
+
+
+
+
+
+

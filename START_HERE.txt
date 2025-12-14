@@ -1,0 +1,41 @@
+╔════════════════════════════════════════════╗
+║     KAHOOT DESKTOP - CACH CHAY NHANH      ║
+╚════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────┐
+│  CACH NHANH NHAT (1 CLICK):               │
+│                                            │
+│  >>> Double-click: run.bat <<<             │
+│                                            │
+│  Tu dong chay ca Server va Client!        │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  HOAC CHAY RIENG:                          │
+│                                            │
+│  run-server.bat  -> Chi Server             │
+│  run-client.bat  -> Chi Client             │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  TAI KHOAN TEST:                           │
+│                                            │
+│  Username: admin                           │
+│  Password: admin123                        │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  LUU Y:                                    │
+│                                            │
+│  1. MySQL phai dang chay                   │
+│  2. Database phai da setup                 │
+│     (chay: sql/init_database.sql)          │
+│  3. Trong Server Dashboard:                │
+│     Nhan "Khoi dong Server" truoc          │
+└────────────────────────────────────────────┘
+
+
+
+
+
+

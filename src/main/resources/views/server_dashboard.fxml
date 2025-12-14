@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.kahoot.server.ServerDashboardController"
+            prefWidth="700" prefHeight="600"
+            style="-fx-background-color: #f5f5f5;">
+    
+    <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.bottomAnchor="20">
+        <!-- Header -->
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Kahoot Server" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="statusLabel" text="Chưa khởi động" 
+                   style="-fx-font-size: 14px; -fx-text-fill: #666; -fx-background-color: #ffc107; -fx-background-radius: 5; -fx-padding: 5 15;" />
+        </HBox>
+        
+        <!-- Server Controls -->
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+            <Label text="IP:" style="-fx-font-size: 14px;" />
+            <TextField fx:id="ipField" text="0.0.0.0" prefWidth="150" 
+                      promptText="0.0.0.0 = tất cả interfaces" />
+            <Label text="Port:" style="-fx-font-size: 14px;" />
+            <TextField fx:id="portField" text="8888" prefWidth="100" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="startButton" text="Khởi động Server" onAction="#handleStartServerAction"
+                    style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
+            <Button fx:id="stopButton" text="Dừng Server" onAction="#handleStopServerAction" disable="true"
+                    style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20;" />
+        </HBox>
+        
+        <!-- Server Info -->
+        <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+            <Label text="Thông tin Server" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+            <Separator />
+            
+            <HBox spacing="10">
+                <Label text="Số client đang kết nối:" style="-fx-font-size: 14px;" />
+                <Label fx:id="clientCountLabel" text="0" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
+            </HBox>
+            
+            <HBox spacing="10">
+                <Label text="Số game session đang hoạt động:" style="-fx-font-size: 14px;" />
+                <Label fx:id="gameCountLabel" text="0" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
+            </HBox>
+        </VBox>
+        
+        <!-- Log Area -->
+        <VBox spacing="10" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20;">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Server Log" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="Xóa Log" onAction="#handleClearLogAction"
+                        style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-background-radius: 5;" />
+            </HBox>
+            <Separator />
+            
+            <TextArea fx:id="logArea" editable="false" wrapText="true" 
+                      style="-fx-font-family: 'Courier New'; -fx-font-size: 12px;" />
+        </VBox>
+    </VBox>
+    
+</AnchorPane>
+
+
+
+
+

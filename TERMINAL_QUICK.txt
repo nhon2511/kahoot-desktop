@@ -1,0 +1,54 @@
+╔════════════════════════════════════════════╗
+║   HUONG DAN CHAY BANG TERMINAL            ║
+╚════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────┐
+│  BUOC 1: Mo Terminal                      │
+│  (cmd, PowerShell, hoac terminal trong IDE)│
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  BUOC 2: Di chuyen den thu muc project    │
+│                                            │
+│  cd d:\workspace\kahoot-desktop            │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  BUOC 3: Terminal 1 - Chay Server          │
+│                                            │
+│  Command Prompt:                            │
+│  mvn exec:java -Dexec.mainClass=           │
+│    "com.example.kahoot.server.ServerMain" │
+│                                            │
+│  PowerShell:                                │
+│  mvn exec:java "-Dexec.mainClass=          │
+│    com.example.kahoot.server.ServerMain"   │
+│                                            │
+│  Hoac dung script:                          │
+│  .\run-server.ps1                          │
+│                                            │
+│  -> Nhan "Khoi dong Server" trong UI      │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  BUOC 4: Terminal 2 - Chay Client         │
+│                                            │
+│  mvn javafx:run                            │
+│                                            │
+│  -> Client UI se hien thi                  │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  NEU CHUA COMPILE:                         │
+│                                            │
+│  mvn clean compile                         │
+│                                            │
+│  Roi chay lai buoc 3 va 4                  │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│  TAI KHOAN TEST:                           │
+│  Username: admin                            │
+│  Password: admin123                         │
+└────────────────────────────────────────────┘
+

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.kahoot.client.ManageQuizController"
+            prefWidth="900" prefHeight="700"
+            style="-fx-background-color: #f5f5f5;">
+    
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.bottomAnchor="20">
+        <!-- Header -->
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label fx:id="quizTitleLabel" text="Quản lý Quiz" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #7B2CBF;" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button text="Quay lại" onAction="#handleBackButtonAction"
+                    style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-background-radius: 5;" />
+        </HBox>
+        
+        <!-- Main Content -->
+        <HBox spacing="20" VBox.vgrow="ALWAYS">
+            <!-- Left: Questions List -->
+            <VBox spacing="10" prefWidth="400" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Danh sách Câu hỏi" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button text="+ Thêm Câu hỏi" onAction="#handleAddQuestionAction"
+                            style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-background-radius: 5;" />
+                </HBox>
+                
+                <ListView fx:id="questionsListView" prefHeight="500" />
+            </VBox>
+            
+            <!-- Right: Question Details -->
+            <VBox spacing="10" HBox.hgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;">
+                <Label text="Chi tiết Câu hỏi" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                
+                <VBox spacing="10">
+                    <VBox spacing="5">
+                        <Label text="Nội dung câu hỏi:" style="-fx-font-size: 14px;" />
+                        <TextArea fx:id="questionTextArea" promptText="Nhập nội dung câu hỏi..." prefHeight="80" wrapText="true" />
+                    </VBox>
+                    
+                    <HBox spacing="10">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Thời gian (giây):" style="-fx-font-size: 14px;" />
+                            <TextField fx:id="timeLimitField" text="20" />
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Điểm số:" style="-fx-font-size: 14px;" />
+                            <TextField fx:id="pointValueField" text="1000" />
+                        </VBox>
+                    </HBox>
+                    
+                    <HBox spacing="10">
+                        <Button text="Lưu Câu hỏi" onAction="#handleSaveQuestionAction"
+                                style="-fx-background-color: #7B2CBF; -fx-text-fill: white; -fx-background-radius: 5;" />
+                        <Button text="Xóa Câu hỏi" onAction="#handleDeleteQuestionAction"
+                                style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-background-radius: 5;" />
+                    </HBox>
+                </VBox>
+                
+                <Separator />
+                
+                <!-- Options Section -->
+                <VBox spacing="10">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Các lựa chọn trả lời:" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button text="+ Thêm Lựa chọn" onAction="#handleAddOptionAction"
+                                style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-background-radius: 5;" />
+                    </HBox>
+                    
+                    <ListView fx:id="optionsListView" prefHeight="200" />
+                    
+                    <VBox spacing="5">
+                        <Label text="Nội dung lựa chọn:" style="-fx-font-size: 12px;" />
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <TextField fx:id="optionTextField" promptText="Nhập nội dung lựa chọn..." HBox.hgrow="ALWAYS" />
+                            <CheckBox fx:id="isCorrectCheckBox" text="Đáp án đúng" />
+                            <Button text="Lưu" onAction="#handleSaveOptionAction"
+                                    style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-background-radius: 5;" />
+                            <Button text="Xóa" onAction="#handleDeleteOptionAction"
+                                    style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-background-radius: 5;" />
+                        </HBox>
+                    </VBox>
+                </VBox>
+                
+                <Label fx:id="messageLabel" style="-fx-text-fill: red; -fx-font-size: 12px;" text="" />
+            </VBox>
+        </HBox>
+    </VBox>
+    
+</AnchorPane>
+
+
+
+
+
